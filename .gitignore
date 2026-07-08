@@ -3,3 +3,14 @@
 output/builds/
 __pycache__/
 *.pyc
+# Ghidra
+*.gpr
+*.lock
+*.lock~
+*.rep/
+
+# Analysis output
+analysis/db/
+
+# macOS
+.DS_Store
