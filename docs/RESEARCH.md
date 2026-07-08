@@ -1,171 +1,175 @@
 # Korg Triton Rack Reverse Engineering
 
-## Current status
+**Project Status:** Phase 2 — Reverse Engineering
 
-The repository contains:
-
-- original ROM dumps
-- donor ROM dumps
-- ROM comparison tools
-- ROM builder
-- automatic build analyzer
+Last Updated: 2026-07-08
 
 ---
 
-# Hardware
+# Objective
 
-Main board contains:
+Determine the complete boot process of the Korg Triton Rack firmware and identify the exact reason for:
 
-- 4 × MBM29F160BE Flash
-- Hitachi SH7034 CPU
-- Two custom KORG DSPs
-- Boot failure:
-    System Error
-    Code 9
+System Error
+Code 9
 
 ---
 
-# Confirmed observations
+# Confirmed Facts
 
-## ROM size
+## F-001 — Flash ROM Size
 
-Each ROM:
+Status: 🟢 Confirmed
 
-2097152 bytes
+Each Fujitsu MBM29F160BE contains:
 
-Combined image:
-
-8388608 bytes
+- 2,097,152 bytes (2 MB)
 
 ---
 
-## Tested build methods
+## F-002 — Total Flash Size
+
+Status: 🟢 Confirmed
+
+The main board contains four Flash devices.
+
+Total firmware size:
+
+8,388,608 bytes (8 MB)
+
+---
+
+## F-003 — Donor ROM Naming
+
+Status: 🟢 Confirmed
+
+The donor ROM filenames correspond to the PCB silkscreen:
+
+- IC3
+- IC12
+- IC17
+- IC23
+
+---
+
+## F-004 — Updated ROM Equality
+
+Status: 🟢 Confirmed
+
+ROM:
+
+1x2
+
+is identical to
+
+2x2
+
+Reason:
+
+Both chips were rewritten using another working Triton Rack during an official firmware update.
+
+This behavior is expected.
+
+---
+
+# Experiments
+
+## E-001 — ROM Comparison
+
+Status: 🟢 Completed
+
+Result:
+
+ROM comparison tools successfully identify identical and different Flash devices.
+
+---
+
+## E-002 — ROM Reconstruction
+
+Status: 🟢 Completed
+
+Generated images:
 
 - Linear
 - Interleave 8-bit
 - Interleave 16-bit
 - Interleave 32-bit
 
-All produce valid 8 MB images.
+Each image size:
+
+8 MB
 
 ---
 
-## Entropy
+## E-003 — Build Analysis
 
-All four combined images:
+Status: 🟢 Completed
+
+Results:
+
+All reconstructed images have identical entropy.
+
+Entropy:
 
 5.7344
 
-This is expected because only ordering changes.
+Linear image contains extremely large FF and 00 regions.
+
+Interleave16 and Interleave32 contain much shorter FF/00 regions.
 
 ---
 
-## Linear build
+# Hypotheses
 
-Longest FF run:
+## H-001
 
-93264 bytes
+Linear concatenation represents the real memory layout.
 
-Longest 00 run:
+Status:
 
-331420 bytes
-
-Conclusion:
-
-Very unlikely to represent real memory layout.
-
----
-
-## Interleave16
-
-Longest FF:
-
-4 bytes
-
-Longest 00:
-
-86 bytes
-
-Looks much more realistic.
-
----
-
-## Interleave32
-
-Longest FF:
-
-6 bytes
-
-Longest 00:
-
-92 bytes
-
-Also looks realistic.
-
-Further investigation required.
-
----
-
-# Donor ROMs
-
-Donor ROM filenames correspond to PCB silkscreen:
-
-IC3
-IC12
-IC17
-IC23
-
-This appears intentional.
-
----
-
-# User ROMs
-
-Files:
-
-1x1
-1x2
-1x3
-1x4
-
-2x1
-2x2
-2x3
-2x4
-
-Known fact:
-
-1x2 == 2x2
+🔴 Rejected (current evidence)
 
 Reason:
 
-ROMs were rewritten using another Triton Rack during OS update.
-
-Therefore this equality is expected.
+Very large contiguous FF and 00 regions.
 
 ---
 
-# Current hypothesis
+## H-002
 
-The correct memory mapping is more likely to be:
+Interleave16 represents the real memory layout.
 
-Interleave16
+Status:
 
-or
-
-Interleave32
-
-than linear concatenation.
+🟡 Under Investigation
 
 ---
 
-# Next step
+## H-003
 
-Search inside generated images for:
+Interleave32 represents the real memory layout.
 
-- vector tables
-- pointer tables
-- reset vector
-- boot loader
-- checksum verification
-- ROM identification tables
+Status:
+
+🟡 Under Investigation
+
+---
+
+## H-004
+
+System Error Code 9 is generated after ROM integrity verification.
+
+Status:
+
+🔵 Open
+
+---
+
+# Next Tasks
+
+- Pointer analysis
+- Vector table detection
+- CPU code detection
+- Memory map reconstruction
+- Boot sequence reconstruction
+- Error Code 9 localization
